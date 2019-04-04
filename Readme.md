@@ -130,26 +130,43 @@
 看两个例子:
 
 ```python
+# Python2
 a = 1
 def fun(a):
     a = 2
 fun(a)
 print a  # 1
+
+# Python3
+a = 1
+def fun(a):
+    a = 2
+fun(a)
+print(a) # 1
 ```
 
 ```python
+# Python2
 a = []
 def fun(a):
     a.append(1)
 fun(a)
 print a  # [1]
+
+# Python3
+a = []
+def fun(a):
+    a.append(1)
+fun(a)
+print(a) # [1]
 ```
 
-所有的变量都可以理解是内存中一个对象的“引用”，或者，也可以看似c中void*的感觉。
+所有的变量都可以理解为内存中一个对象的“引用”，或者，也可以看似C语言中void*的感觉。
 
 通过`id`来看引用`a`的内存地址可以比较理解：
 
 ```python
+# Python2
 a = 1
 def fun(a):
     print "func_in",id(a)   # func_in 41322472
@@ -158,6 +175,17 @@ def fun(a):
 print "func_out",id(a), id(1)  # func_out 41322472 41322472
 fun(a)
 print a  # 1
+
+# Python3
+a = 1
+def fun(a):
+    print('func_in', id(a))  # func_out 1489005600 1489005600
+    a = 2
+    print('re-point', id(a), id(2))  # func_in 1489005600
+print('func_out', id(a), id(1))  # re-point 1489005632 1489005632
+fun(a)
+print(a)  # 1
+# 备注：两段代码中的结果的差异并非版本造成的，而是在每次运行代码时分配的内存地址不同, 下文类似
 ```
 
 注：具体的值在不同电脑上运行时可能不同。
@@ -167,6 +195,7 @@ print a  # 1
 而第2个例子`a`引用保存的内存值就不会发生变化：
 
 ```python
+# Python2
 a = []
 def fun(a):
     print "func_in",id(a)  # func_in 53629256
@@ -174,6 +203,15 @@ def fun(a):
 print "func_out",id(a)     # func_out 53629256
 fun(a)
 print a  # [1]
+
+# Python3
+a = []
+def fun(a):
+    print('func_in', id(a))  # func_out 2070697222344
+    a.append(1)
+print('func_out', id(a))  # func_in 2070697222344
+fun(a)
+print(a)  # [1]
 ```
 
 这里记住的是类型是属于对象的，而不是变量。而对象有两种,“可更改”（mutable）与“不可更改”（immutable）对象。在python中，strings, tuples, 和numbers是不可更改的对象，而 list, dict, set 等则是可以修改的对象。(这就是这个问题的重点)
@@ -191,6 +229,7 @@ print a  # [1]
 Python其实有3个方法,即静态方法(staticmethod),类方法(classmethod)和实例方法,如下:
 
 ```python
+# Python2
 def foo(x):
     print "executing foo(%s)"%(x)
 
@@ -208,6 +247,23 @@ class A(object):
 
 a=A()
 
+# Python3
+def foo(x):
+    print("executing foo(%s)" % (x))
+
+class A:
+    def foo(self, x):
+        print("executing foo(%s,%s)" % (self, x))
+
+    @classmethod
+    def class_foo(cls, x):
+        print("executing class_foo(%s,%s)" % (cls, x))
+
+    @staticmethod
+    def static_foo(x):
+        print("executing static_foo(%s)" % x)
+
+a = A()
 ```
 
 这里先理解下函数参数里面的self和cls.这个self和cls是对类或者实例的绑定,对于一般的函数来说我们可以这么调用`foo(x)`,这个函数就是最常用的,它的工作跟任何东西(类,实例)无关.对于实例方法,我们知道在类里每次定义方法的时候都需要绑定这个实例,就是`foo(self, x)`,为什么要这么做呢?因为实例方法的调用离不开实例,我们需要把实例自己传给函数,调用的时候是这样的`a.foo(x)`(其实是`foo(a, x)`).类方法一样,只不过它传递的是类而不是实例,`A.class_foo(x)`.注意这里的self和cls可以替换别的参数,但是python的约定是这俩,还是不要改的好.
@@ -226,13 +282,14 @@ a=A()
 
 **类变量：**
 
-> ​	是可在类的所有实例之间共享的值（也就是说，它们不是单独分配给每个实例的）。例如下例中，num_of_instance 就是类变量，用于跟踪存在着多少个Test 的实例。
+> ​	是可在类的所有实例之间共享的值（是属于类对象而不是实例对象的变量，既可以通过类名，也可以通过实例进行访问）。例如下例中，num_of_instance 就是类变量，用于跟踪存在着多少个Test 的实例。
 
 **实例变量：**
 
 > 实例化之后，每个实例单独拥有的变量。
 
 ```python
+# Python2
 class Test(object):  
     num_of_instance = 0  
     def __init__(self, name):  
@@ -246,11 +303,28 @@ if __name__ == '__main__':
     t2 = Test('lucy')  
     print t1.name , t1.num_of_instance  # jack 2
     print t2.name , t2.num_of_instance  # lucy 2
+   
+# Python3
+class Test:
+    num_of_instance = 0
+
+    def __init__(self, name):
+        self.name = name
+        Test.num_of_instance += 1
+
+if __name__ == '__main__':
+    print(Test.num_of_instance)  # 0
+    t1 = Test('jack')
+    print(Test.num_of_instance)  # 1
+    t2 = Test('lucy')
+    print(t1.name, t1.num_of_instance)  # jack 2
+    print(t2.name, t2.num_of_instance)  # lucy 2
 ```
 
 > 补充的例子
 
 ```python
+# Python2
 class Person:
     name="aaa"
 
@@ -260,6 +334,21 @@ p1.name="bbb"
 print p1.name  # bbb
 print p2.name  # aaa
 print Person.name  # aaa
+
+# Python3
+class Person:
+    name="aaa"
+
+p1=Person()
+p2=Person()
+p1.name="bbb"
+print(p1.name)   # bbb
+print(p2.name)   # aaa
+print(Person.name)  # aaa
+print(id(Person.name))  # 2596952388360
+print(id(p1.name))  # 2596954962160
+print(id(p2.name))  # 2596952388360
+# 最后三条语句我们分别打印Person, p1, p2的name属性的地址，可以发现p1的name属性的地址与Person和p2的不一致，这说明 p1.name="bbb" 由于赋值的是不可变对象，所以修改了它对类属性的引用
 ```
 
 这里`p1.name="bbb"`是实例调用了类变量,这其实和上面第一个问题一样,就是函数传参的问题,`p1.name`一开始是指向的类变量`name="aaa"`,但是在实例的作用域里把类变量的引用改变了,就变成了一个实例变量,self.name不再引用Person的类变量name了.
@@ -267,6 +356,7 @@ print Person.name  # aaa
 可以看看下面的例子:
 
 ```python
+# Python2
 class Person:
     name=[]
 
@@ -276,6 +366,21 @@ p1.name.append(1)
 print p1.name  # [1]
 print p2.name  # [1]
 print Person.name  # [1]
+
+# Python3
+class Person:
+    name = []
+
+p1 = Person()
+p2 = Person()
+p1.name.append(1)
+print(p1.name)  # [1]
+print(p2.name)  # [1]
+print(Person.name)  # [1]
+
+print(id(Person.name))  # 2182425486536
+print(id(p1.name))  # 2182425486536
+print(id(p2.name))  # 2182425486536
 ```
 
 参考:http://stackoverflow.com/questions/6470428/catch-multiple-exceptions-in-one-line-except-block
@@ -287,11 +392,19 @@ print Person.name  # [1]
 自省就是面向对象的语言所写的程序在运行时,所能知道对象的类型.简单一句就是运行时能够获得对象的类型.比如type(),dir(),getattr(),hasattr(),isinstance().
 
 ```python
+# Python2
 a = [1,2,3]
 b = {'a':1,'b':2,'c':3}
 c = True
 print type(a),type(b),type(c) # <type 'list'> <type 'dict'> <type 'bool'>
 print isinstance(a,list)  # True
+
+# Python3
+a = [1, 2, 3]
+b = {'a': 1, 'b': 2, 'c': 3}
+c = True
+print(type(a), type(b), type(c))  # <class 'list'> <class 'dict'> <class 'bool'>
+print(isinstance(a, list))  # True
 ```
 
 
@@ -307,6 +420,7 @@ d = {key: value for (key, value) in iterable}
 ## 7 Python中单下划线和双下划线
 
 ```python
+# Python2
 >>> class MyClass():
 ...     def __init__(self):
 ...             self.__superprivate = "Hello"
@@ -321,6 +435,22 @@ AttributeError: myClass instance has no attribute '__superprivate'
 , world!
 >>> print mc.__dict__
 {'_MyClass__superprivate': 'Hello', '_semiprivate': ', world!'}
+
+# Python3
+>>> class MyClass:
+	def __init__(self):
+		self.__superprivate = 'hello'
+		self._semiprivate = 'world'
+>>> mc = MyClass()
+>>> print(mc.__superprivate)
+Traceback (most recent call last):
+  File "<pyshell#9>", line 1, in <module>
+    print(mc.__superprivate)
+AttributeError: 'MyClass' object has no attribute '__superprivate'
+>>> print(mc._semiprivate)
+world
+>>> print(mc.__dict__)
+{'_MyClass__superprivate': 'hello', '_semiprivate': 'world'}     
 ```
 
 `__foo__`:一种约定,Python内部的名字,用来区别其他用户自定义的命名,以防冲突，就是例如`__init__()`,`__del__()`,`__call__()`这些特殊方法
@@ -383,6 +513,7 @@ http://stackoverflow.com/questions/5082452/python-string-formatting-vs-format
 当你不确定你的函数里将要传递多少参数时你可以用`*args`.例如,它可以传递任意数量的参数:
 
 ```python
+# Python2
 >>> def print_everything(*args):
         for count, thing in enumerate(args):
 ...         print '{0}. {1}'.format(count, thing)
@@ -391,11 +522,21 @@ http://stackoverflow.com/questions/5082452/python-string-formatting-vs-format
 0. apple
 1. banana
 2. cabbage
+
+# Python3
+>>> def print_everything(*args):
+	for count, thing in enumerate(args):
+		print('{0}.{1}'.format(count, thing))
+>>> print_everything('apple', 'banana', 'cabbage')
+0.apple
+1.banana
+2.cabbage
 ```
 
 相似的,`**kwargs`允许你使用没有事先定义的参数名:
 
 ```python
+# Python2
 >>> def table_things(**kwargs):
 ...     for name, value in kwargs.items():
 ...         print '{0} = {1}'.format(name, value)
@@ -403,6 +544,15 @@ http://stackoverflow.com/questions/5082452/python-string-formatting-vs-format
 >>> table_things(apple = 'fruit', cabbage = 'vegetable')
 cabbage = vegetable
 apple = fruit
+
+# Python3
+>>> def table_things(**kw):
+	for name, value in kw.items():
+		print('{0}.{1}'.format(name, value))
+
+>>> table_things(apple = 'fruit', cabbage = 'vagetable')
+apple.fruit
+cabbage.vagetable
 ```
 
 你也可以混着用.命名参数首先获得参数值然后所有的其他参数都传递给`*args`和`**kwargs`.命名参数在列表的最前端.例如:
@@ -416,13 +566,20 @@ def table_things(titlestring, **kwargs)
 当调用函数时你也可以用`*`和`**`语法.例如:
 
 ```python
+# Python2
 >>> def print_three_things(a, b, c):
 ...     print 'a = {0}, b = {1}, c = {2}'.format(a,b,c)
 ...
 >>> mylist = ['aardvark', 'baboon', 'cat']
 >>> print_three_things(*mylist)
-
 a = aardvark, b = baboon, c = cat
+
+# Python3
+>>> def print_three_things(a, b, c):
+	print('a = {0}, b = {1}, c = {2}'.format(a, b, c))
+>>> mylist = ['hello', 'hi', 'nice']
+>>> print_three_things(*mylist)
+a = hello, b = hi, c = nice
 ```
 
 就像你看到的一样,它可以传递列表(或者元组)的每一项并把它们解包.注意必须与它们在函数里的参数相吻合.当然,你也可以在函数定义或者函数调用时用*.
@@ -542,7 +699,6 @@ class MyClass(Singleton):
 创建实例时把所有实例的`__dict__`指向同一个字典,这样它们具有相同的属性和方法.
 
 ```python
-
 class Borg(object):
     _state = {}
     def __new__(cls, *args, **kw):
@@ -649,16 +805,33 @@ python中函数式编程支持:
 filter 函数的功能相当于过滤器。调用一个布尔函数`bool_func`来迭代遍历每个seq中的元素；返回一个使`bool_seq`返回值为true的元素的序列。
 
 ```python
+# Python2
 >>>a = [1,2,3,4,5,6,7]
 >>>b = filter(lambda x: x > 5, a)
 >>>print b
 >>>[6,7]
+
+# Python3
+>>> a = [1,2,3,4,5,6,7]
+>>> b = filter(lambda x: x > 5, a)
+>>> print(b)
+<filter object at 0x000001E48C624F28>
+>>> for i in b:
+	print(i)	
+6
+7
 ```
 
 map函数是对一个序列的每个项依次执行函数，下面是对一个序列每个项都乘以2：
 
 ```python
+# Python2
 >>> a = map(lambda x:x*2,[1,2,3])
+>>> list(a)
+[2, 4, 6]
+
+# Python3
+>>> a = map(lambda x: x*2, [1, 2, 3])
 >>> list(a)
 [2, 4, 6]
 ```
@@ -666,7 +839,13 @@ map函数是对一个序列的每个项依次执行函数，下面是对一个�
 reduce函数是对一个序列的每个项迭代调用函数，下面是求3的阶乘：
 
 ```python
+# Python2
 >>> reduce(lambda x,y:x*y,range(1,4))
+6
+
+# Python3
+>>> from functools import reduce 
+>>> reduce(lambda x, y: x * y, range(1, 4))
 6
 ```
 
@@ -675,6 +854,7 @@ reduce函数是对一个序列的每个项迭代调用函数，下面是求3的�
 引用和copy(),deepcopy()的区别
 
 ```python
+# Python2
 import copy
 a = [1, 2, 3, 4, ['a', 'b']]  #原始对象
 
@@ -695,6 +875,22 @@ a =  [1, 2, 3, 4, ['a', 'b', 'c'], 5]
 b =  [1, 2, 3, 4, ['a', 'b', 'c'], 5]
 c =  [1, 2, 3, 4, ['a', 'b', 'c']]
 d =  [1, 2, 3, 4, ['a', 'b']]
+
+# Python3
+import copy
+a = [1, 2, 3, 4, ['a', 'b']]  
+
+b = a  
+c = copy.copy(a)  
+d = copy.deepcopy(a)  
+
+a.append(5)  
+a[4].append('c')  
+
+print('a = ', a)  # a =  [1, 2, 3, 4, ['a', 'b', 'c'], 5]
+print('b = ', b)  # b =  [1, 2, 3, 4, ['a', 'b', 'c'], 5]
+print('c = ', c)  # c =  [1, 2, 3, 4, ['a', 'b', 'c']]
+print('d = ', d)  # d =  [1, 2, 3, 4, ['a', 'b']]
 ```
 
 ## 24 Python垃圾回收机制
@@ -1430,7 +1626,7 @@ def recursion_merge_sort2(l1, l2):
 再把旧列表加到新列表后面
 
 
-```pyhton
+```python
 def loop_merge_sort(l1, l2):
     tmp = []
     while len(l1) > 0 and len(l2) > 0:
